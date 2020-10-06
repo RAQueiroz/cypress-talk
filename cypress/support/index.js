@@ -1,5 +1,3 @@
-/// <reference types="cypress" />
-import '@cypress/code-coverage/support'
 import '@bahmutov/cy-api/support'
 
 const apiUrl = Cypress.env('apiUrl')
@@ -8,7 +6,7 @@ const apiUrl = Cypress.env('apiUrl')
 // and then set the received token in the local storage
 // can log in with default user or with a given one
 Cypress.Commands.add('login', (user = Cypress.env('user')) => {
-  cy.getLoginToken(user).then(token => {
+  cy.getLoginToken(user).then((token) => {
     localStorage.setItem('jwt', token)
     // with this token set, when we visit the page
     // the web application will have the user logged in
@@ -23,7 +21,7 @@ Cypress.Commands.add('login', (user = Cypress.env('user')) => {
 Cypress.Commands.add('getLoginToken', (user = Cypress.env('user')) => {
   return cy
     .request('POST', `${apiUrl}/api/users/login`, {
-      user: Cypress._.pick(user, ['email', 'password'])
+      user: Cypress._.pick(user, ['email', 'password']),
     })
     .its('body.user.token')
     .should('exist')
@@ -37,35 +35,31 @@ Cypress.Commands.add('registerUserIfNeeded', (options = {}) => {
   const defaults = {
     image: 'https://robohash.org/6FJ.png?set=set3&size=150x150',
     // email, password
-    ...Cypress.env('user')
+    ...Cypress.env('user'),
   }
   const user = Cypress._.defaults({}, options, defaults)
   cy.request({
     method: 'POST',
     url: `${apiUrl}/api/users`,
     body: {
-      user
+      user,
     },
-    failOnStatusCode: false
+    failOnStatusCode: false,
   })
 })
 
 /**
  * Dispatches a given Redux action straight to the application
  */
-Cypress.Commands.add('dispatch', action => {
-  expect(action)
-    .to.be.an('object')
-    .and.to.have.property('type')
-  cy.window()
-    .its('store')
-    .invoke('dispatch', action)
+Cypress.Commands.add('dispatch', (action) => {
+  expect(action).to.be.an('object').and.to.have.property('type')
+  cy.window().its('store').invoke('dispatch', action)
 })
 
 /**
  * Checks if the given object have all the keys for creating a new article
  */
-const checkArticle = fields => {
+const checkArticle = (fields) => {
   expect(fields)
     .to.be.an('object')
     .and.to.have.all.keys(['title', 'description', 'body', 'tagList'])
@@ -74,7 +68,7 @@ const checkArticle = fields => {
 /**
  * Single command to write a post via UI (with a few Redux shortcuts)
  */
-Cypress.Commands.add('article', fields => {
+Cypress.Commands.add('article', (fields) => {
   checkArticle(fields)
 
   // can we create an article using `cy.task`?
@@ -87,19 +81,19 @@ Cypress.Commands.add('article', fields => {
   cy.dispatch({
     type: 'UPDATE_FIELD_EDITOR',
     key: 'title',
-    value: fields.title
+    value: fields.title,
   })
 
   cy.dispatch({
     type: 'UPDATE_FIELD_EDITOR',
     key: 'description',
-    value: fields.description
+    value: fields.description,
   })
 
   cy.dispatch({
     type: 'UPDATE_FIELD_EDITOR',
     key: 'body',
-    value: fields.body
+    value: fields.body,
   })
 
   if (fields.tagList.length) {
@@ -111,7 +105,7 @@ Cypress.Commands.add('article', fields => {
   cy.location('pathname').should('not.equal', '/editor')
 })
 
-Cypress.Commands.add('postArticle', fields => {
+Cypress.Commands.add('postArticle', (fields) => {
   checkArticle(fields)
   const jwt = localStorage.getItem('jwt')
   expect(jwt, 'jwt token').to.be.a('string')
@@ -120,20 +114,20 @@ Cypress.Commands.add('postArticle', fields => {
     method: 'POST',
     url: `${apiUrl}/api/articles`,
     body: {
-      article: fields
+      article: fields,
     },
     headers: {
-      authorization: `Token ${jwt}`
-    }
+      authorization: `Token ${jwt}`,
+    },
   })
 })
 
-Cypress.Commands.add('writeArticle', article => {
+Cypress.Commands.add('writeArticle', (article) => {
   cy.window()
     .its('agent.Articles')
     .invoke('create', article) // resolves with new article object
     .its('article.slug')
-    .then(slug => {
+    .then((slug) => {
       // make sure the article fully loads
       // including its comments before proceeding
       cy.server()
@@ -153,12 +147,12 @@ Cypress.Commands.add('postComment', (articleSlug, text) => {
     url: `${apiUrl}/api/articles/${articleSlug}/comments`,
     body: {
       comment: {
-        body: text
-      }
+        body: text,
+      },
     },
     headers: {
-      authorization: `Token ${jwt}`
-    }
+      authorization: `Token ${jwt}`,
+    },
   })
   // after posting comment through API,
   // need to reload the page to see it

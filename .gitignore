@@ -67,3 +67,6 @@ typings/
 /cypress/screenshots/
 dist
 client/build
+client/.cache
+notes.md
+bkp-integration

@@ -13,20 +13,8 @@
     "ci:server": "cd server && npm ci",
     "build": "cd client && npm run build",
     "start": "concurrently npm:start:client npm:start:server",
-    "start:coverage": "concurrently npm:start:client npm:start:server:coverage",
     "start:client": "cd client && npm start",
-    "start:server": "cd server && npm start",
-    "start:server:coverage": "cd server && npm run start:coverage",
-    "cypress:open": "cypress open",
-    "cypress:run": "cypress run",
-    "cypress:test": "cypress run -s 'cypress/integration/**/*-spec.js'",
-    "test": "start-test start 4100 cypress:test",
-    "test:coverage": "start-test start:coverage 4100 cypress:test",
-    "dev": "start-test start 4100 cypress:open",
-    "dev:coverage": "start-test start:coverage 4100 cypress:open",
-    "coveralls": "nyc report --reporter=text-lcov | coveralls",
-    "warn-only": "stop-only --warn --folder cypress/integration",
-    "stop-only": "stop-only --folder cypress/integration"
+    "start:server": "cd server && npm start"
   },
   "repository": {
     "type": "git",
@@ -55,14 +43,5 @@
     "sqlite3": "4.1.1",
     "start-server-and-test": "1.10.11",
     "stop-only": "3.1.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run warn-only",
-      "pre-push": "npm run stop-only"
-    }
-  },
-  "nyc": {
-    "exclude": "server/lib/migrations"
   }
 }
