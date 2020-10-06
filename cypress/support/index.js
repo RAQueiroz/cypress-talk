@@ -1,5 +1,8 @@
 import '@bahmutov/cy-api/support'
+import '@testing-library/cypress/add-commands'
+import { configure } from '@testing-library/cypress'
 
+configure({ testIdAttribute: 'data-cy' })
 const apiUrl = Cypress.env('apiUrl')
 
 // a custom Cypress command to login using XHR call
