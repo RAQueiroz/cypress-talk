@@ -1,22 +1,21 @@
-import { title, about, article, tags } from '../fixtures/post'
 import '@testing-library/cypress/add-commands'
 import { configure } from '@testing-library/cypress'
+import postA from '../fixtures/post'
+import postB from '../fixtures/postB'
 
 configure({ testIdAttribute: 'data-cy' })
 
 const apiUrl = Cypress.env('apiUrl')
 
-const postA = { title, description: about, body: article, tagList: tags }
-
-Cypress.Commands.add('register', () => {
+Cypress.Commands.add('register', (user) => {
   const log = Cypress.log({
     name: 'register',
     displayName: 'Register',
-    message: '👤 registering a new user',
+    message: `👤 registering ${user}`,
     autoEnd: false,
   })
 
-  cy.fixture('userA').then((user) => {
+  cy.fixture(user).then((user) => {
     cy.request({
       method: 'POST',
       url: `${apiUrl}users`,
@@ -29,6 +28,18 @@ Cypress.Commands.add('register', () => {
   })
 })
 
+Cypress.Commands.add('getToken', (user) => {
+  const { email, password } = user
+  cy.request({
+    method: 'POST',
+    url: `${apiUrl}users/login`,
+    body: {
+      user: { email, password },
+    },
+    log: false,
+  }).then(({ body }) => ({ user: body.user, token: body.user.token }))
+})
+
 Cypress.Commands.add('login', (user) => {
   const log = Cypress.log({
     name: 'login in',
@@ -36,44 +47,45 @@ Cypress.Commands.add('login', (user) => {
     message: '🔐 login user in',
     autoEnd: false,
   })
-  const doLogin = ({ email, password }) =>
-    cy
-      .request({
-        method: 'POST',
-        url: `${apiUrl}users/login`,
-        body: {
-          user: { email, password },
-        },
-        log: false,
-      })
-      .then(({ body }) => ({ user: body.user, token: body.user.token }))
 
   const setToken = ({ token }) => localStorage.setItem('jwt', token)
 
   if (user) {
-    console.log(user)
-    doLogin(user).then(setToken)
+    cy.getToken(user).then(setToken)
   } else {
-    cy.fixture('userA').then(doLogin).then(setToken)
+    cy.fixture('userA').then(getToken).then(setToken)
   }
   log.end()
 })
 
-Cypress.Commands.add('registerAndLogin', () => {
-  cy.register().then(cy.login)
+Cypress.Commands.add('registerAndLogin', (user = 'userA') => {
+  cy.register(user).then(cy.login)
 })
 
-Cypress.Commands.add('createANewPost', (post) => {
-  const token = localStorage.getItem('jwt')
+Cypress.Commands.add('createPostForUser', (user = 'userB', post = postB) => {
+  cy.register(user)
+    .then(cy.getToken)
+    .then(({ token }) => cy.createANewPost(token, postB))
+})
 
-  if (token) {
-    cy.request({
-      method: 'POST',
-      url: `${apiUrl}articles`,
-      body: { article: postA },
-      headers: {
-        authorization: `Token ${token}`,
-      },
-    })
-  }
+Cypress.Commands.add('createANewPost', (token, post = postA) => {
+  const defaultToken = localStorage.getItem('jwt')
+
+  const log = Cypress.log({
+    name: 'creating a new post',
+    displayName: 'Creating a new post',
+    message: '📖 postB',
+    autoEnd: false,
+  })
+
+  cy.request({
+    method: 'POST',
+    url: `${apiUrl}articles`,
+    body: { article: post },
+    headers: {
+      authorization: `Token ${token ? token : defaultToken}`,
+    },
+  })
+
+  log.end()
 })

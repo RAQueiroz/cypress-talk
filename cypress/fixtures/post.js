@@ -19,3 +19,4 @@ export const article = stripIndent`
   > fratres, pectora. Medicamen utrimque regnabat humano, nova ignava mihi [fessis
   > causam](http://torvamque-nymphe.com/quoque.html).
 `
+export default { title, description: about, body: article, tagList: tags }
