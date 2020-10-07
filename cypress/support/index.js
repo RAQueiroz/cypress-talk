@@ -1,8 +1,12 @@
-import '@bahmutov/cy-api/support'
+import { title, about, article, tags } from '../fixtures/post'
 import '@testing-library/cypress/add-commands'
 import { configure } from '@testing-library/cypress'
 
 configure({ testIdAttribute: 'data-cy' })
+
+const apiUrl = Cypress.env('apiUrl')
+
+const postA = { title, description: about, body: article, tagList: tags }
 
 Cypress.Commands.add('register', () => {
   const log = Cypress.log({
@@ -15,7 +19,7 @@ Cypress.Commands.add('register', () => {
   cy.fixture('userA').then((user) => {
     cy.request({
       method: 'POST',
-      url: 'http://localhost:3000/api/users',
+      url: `${apiUrl}users`,
       body: {
         user,
       },
@@ -36,7 +40,7 @@ Cypress.Commands.add('login', (user) => {
     cy
       .request({
         method: 'POST',
-        url: 'http://localhost:3000/api/users/login',
+        url: `${apiUrl}users/login`,
         body: {
           user: { email, password },
         },
@@ -57,4 +61,19 @@ Cypress.Commands.add('login', (user) => {
 
 Cypress.Commands.add('registerAndLogin', () => {
   cy.register().then(cy.login)
+})
+
+Cypress.Commands.add('createANewPost', (post) => {
+  const token = localStorage.getItem('jwt')
+
+  if (token) {
+    cy.request({
+      method: 'POST',
+      url: `${apiUrl}articles`,
+      body: { article: postA },
+      headers: {
+        authorization: `Token ${token}`,
+      },
+    })
+  }
 })
