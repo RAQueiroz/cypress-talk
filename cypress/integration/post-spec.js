@@ -39,4 +39,18 @@ describe('Post', () => {
       'be.visible'
     )
   })
+
+  it('Deletes a post', () => {
+    // cria o post pela api
+    cy.createANewPost()
+    cy.visit('/')
+
+    // edita o post
+    cy.findByRole('link', { name: /global feed/i }).click()
+    cy.findByRole('heading', { name: title }).click()
+    cy.findByRole('button', { name: /delete article/i }).click()
+
+    // verifica se o post foi editado
+    cy.findAllByRole('heading', { name: `${title} edited` }).should('not.exist')
+  })
 })
